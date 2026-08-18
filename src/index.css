@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 2 132 199;
+    --primary-foreground: 255 255 255;
+    --background: 15 23 42;
+    --surface: 30 41 59;
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-100 font-sans antialiased overflow-x-hidden;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, rgba(244, 63, 94, 0.04) 0px, transparent 60%);
+    background-attachment: fixed;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #090d16;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Cards */
+  .glass-card {
+    @apply bg-slate-900/80 backdrop-blur-md border border-slate-800/80 rounded-2xl shadow-xl shadow-black/40;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:border-sky-500/50 hover:shadow-sky-500/10 hover:-translate-y-1;
+  }
+
+  .glass-header {
+    @apply bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80;
+  }
+
+  /* Gradient Text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-teal-300 to-amber-300;
+  }
+
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-orange-400 to-yellow-200;
+  }
+
+  .text-gradient-cyan {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-teal-400;
+  }
+
+  /* Glowing button styles */
+  .btn-glow {
+    @apply relative overflow-hidden transition-all duration-300 active:scale-95;
+    box-shadow: 0 0 20px -5px rgba(2, 132, 199, 0.5);
+  }
+  .btn-glow:hover {
+    box-shadow: 0 0 25px 0px rgba(2, 132, 199, 0.7);
+  }
+
+  .btn-gold-glow {
+    @apply relative overflow-hidden transition-all duration-300 active:scale-95;
+    box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.5);
+  }
+  .btn-gold-glow:hover {
+    box-shadow: 0 0 25px 0px rgba(245, 158, 11, 0.7);
+  }
+
+  /* Math Formula container */
+  .math-formula-card {
+    @apply inline-block px-3 py-1.5 bg-slate-800/90 border border-slate-700/80 rounded-lg font-mono text-sky-300 shadow-inner;
+  }
+}
+
+/* KaTeX Formula enhancements */
+.katex-display {
+  margin: 0.75em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+.katex {
+  font-size: 1.1em;
+  color: #7dd3fc;
+}
