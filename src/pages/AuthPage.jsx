@@ -74,18 +74,32 @@ export const AuthPage = () => {
           schoolName: schoolName.trim() 
         });
 
-        setSuccessMsg('Đăng ký tài khoản thành công! Đang đăng nhập tự động...');
+        if (result?.notice) {
+          setSuccessMsg(result.notice);
+        } else {
+          setSuccessMsg('Đăng ký tài khoản thành công! Đang chuyển hướng...');
+        }
         
         setTimeout(() => {
           const userRole = result?.profile?.role || role;
           if (userRole === 'admin') navigate('/admin');
           else if (userRole === 'teacher') navigate('/teacher');
           else navigate('/student');
-        }, 800);
+        }, 1000);
       }
     } catch (err) {
       console.error('Lỗi xác thực:', err);
-      setError(err.message || 'Đã có lỗi xảy ra. Vui lòng thử lại!');
+      let message = 'Đã có lỗi xảy ra. Vui lòng thử lại!';
+      if (typeof err === 'string') {
+        message = err;
+      } else if (err?.message && typeof err.message === 'string') {
+        message = err.message;
+      } else if (err?.error_description) {
+        message = String(err.error_description);
+      } else if (err?.msg) {
+        message = String(err.msg);
+      }
+      setError(message);
     } finally {
       setLoading(false);
     }
