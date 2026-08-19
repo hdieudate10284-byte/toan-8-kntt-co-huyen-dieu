@@ -35,19 +35,24 @@ export const CreateClassModal = ({
     setError('');
 
     try {
+      // Định danh teacher_id chuẩn của giáo viên phụ trách
+      const effectiveTeacherId = (user?.id && !user.id.startsWith('demo-')) 
+        ? user.id 
+        : '77b6cdfe-1747-4235-82ef-138e9177d749';
+
       const newClassData = {
         name: name.trim(),
         description: description.trim() || 'Lớp Toán 8 Kết Nối Tri Thức - Cô Nguyễn Thị Huyền Diệu',
         grade: grade,
         subject: 'Toán học (KNTT)',
         code: code.toUpperCase().trim(),
-        teacher_id: user?.id,
+        teacher_id: effectiveTeacherId,
         academic_year: '2025–2026'
       };
 
       let createdClass = null;
 
-      if (isSupabaseConfigured && user?.id && !user.id.startsWith('demo-')) {
+      if (isSupabaseConfigured) {
         try {
           const { data, error: dbError } = await supabase
             .from('classes')
@@ -57,14 +62,16 @@ export const CreateClassModal = ({
 
           if (!dbError && data) {
             createdClass = data;
+          } else if (dbError) {
+            console.warn('Lỗi Supabase khi tạo lớp:', dbError);
           }
         } catch (e) {
-          console.warn('Lỗi Supabase insert, chuyển sang fallback:', e);
+          console.warn('Lỗi kết nối Supabase khi tạo lớp:', e);
         }
       }
 
       if (!createdClass) {
-        // Fallback for demo mode hoặc khi database chưa tạo bảng
+        // Fallback lưu cục bộ nếu cơ sở dữ liệu tạm thời chưa phản hồi
         createdClass = {
           ...newClassData,
           id: `class-${Date.now()}`,

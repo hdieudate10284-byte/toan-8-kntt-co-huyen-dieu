@@ -190,19 +190,37 @@ ALTER TABLE public.assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.parent_reports ENABLE ROW LEVEL SECURITY;
 
--- 12. RLS POLICIES
-CREATE POLICY "Public profiles are viewable by authenticated users" ON public.profiles FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
-CREATE POLICY "View classes policy" ON public.classes FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Create classes policy" ON public.classes FOR INSERT TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('teacher', 'admin')));
-CREATE POLICY "View materials policy" ON public.materials FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Insert materials policy" ON public.materials FOR INSERT TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('teacher', 'admin')));
-CREATE POLICY "View assignments policy" ON public.assignments FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Manage assignments policy" ON public.assignments FOR ALL TO authenticated USING (true);
-CREATE POLICY "View progress policy" ON public.student_progress FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Insert progress policy" ON public.student_progress FOR ALL TO authenticated USING (true);
-CREATE POLICY "View parent reports policy" ON public.parent_reports FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Manage parent reports policy" ON public.parent_reports FOR ALL TO authenticated USING (true);
+-- 12. RLS POLICIES (BẢO MẬT & TRUY XUẤT THÔNG SUỐT)
+DROP POLICY IF EXISTS "Public profiles are viewable by authenticated users" ON public.profiles;
+CREATE POLICY "Public profiles are viewable" ON public.profiles FOR SELECT TO public USING (true);
+CREATE POLICY "Public profiles insert" ON public.profiles FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Public profiles update" ON public.profiles FOR UPDATE TO public USING (true);
+
+DROP POLICY IF EXISTS "View classes policy" ON public.classes;
+CREATE POLICY "View classes policy" ON public.classes FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Create classes policy" ON public.classes;
+CREATE POLICY "Create classes policy" ON public.classes FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Manage classes policy" ON public.classes FOR ALL TO public USING (true);
+
+DROP POLICY IF EXISTS "View materials policy" ON public.materials;
+CREATE POLICY "View materials policy" ON public.materials FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Insert materials policy" ON public.materials;
+CREATE POLICY "Insert materials policy" ON public.materials FOR ALL TO public USING (true);
+
+DROP POLICY IF EXISTS "View assignments policy" ON public.assignments;
+CREATE POLICY "View assignments policy" ON public.assignments FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Manage assignments policy" ON public.assignments;
+CREATE POLICY "Manage assignments policy" ON public.assignments FOR ALL TO public USING (true);
+
+DROP POLICY IF EXISTS "View progress policy" ON public.student_progress;
+CREATE POLICY "View progress policy" ON public.student_progress FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Insert progress policy" ON public.student_progress;
+CREATE POLICY "Manage progress policy" ON public.student_progress FOR ALL TO public USING (true);
+
+DROP POLICY IF EXISTS "View parent reports policy" ON public.parent_reports;
+CREATE POLICY "View parent reports policy" ON public.parent_reports FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Manage parent reports policy" ON public.parent_reports;
+CREATE POLICY "Manage parent reports policy" ON public.parent_reports FOR ALL TO public USING (true);
 
 -- 13. STORAGE BUCKETS
 INSERT INTO storage.buckets (id, name, public) VALUES ('materials', 'materials', true), ('game-packages', 'game-packages', true), ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;

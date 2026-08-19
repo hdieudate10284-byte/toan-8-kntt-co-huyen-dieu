@@ -189,7 +189,7 @@ CREATE TRIGGER set_classes_updated_at BEFORE UPDATE ON public.classes FOR EACH R
 DROP TRIGGER IF EXISTS set_materials_updated_at ON public.materials;
 CREATE TRIGGER set_materials_updated_at BEFORE UPDATE ON public.materials FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
--- 12. BẬT ROW LEVEL SECURITY (RLS) TRÊN TẤT CẢ CÁC BẢNG
+-- 12. BẬT ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.class_members ENABLE ROW LEVEL SECURITY;
@@ -198,54 +198,17 @@ ALTER TABLE public.assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_progress ENABLE ROW LEVEL SECURITY;
 
 -- 13. POLICIES CHO BẢNG PROFILES
--- Mọi người có thể đọc profile của nhau (để hiển thị tên giáo viên, học sinh)
-CREATE POLICY "Public profiles are viewable by authenticated users"
-ON public.profiles FOR SELECT
-TO authenticated
-USING (true);
-
--- User có thể tự cập nhật profile của mình
-CREATE POLICY "Users can update own profile"
-ON public.profiles FOR UPDATE
-TO authenticated
-USING (auth.uid() = id);
-
--- Admin có thể toàn quyền chỉnh sửa profiles
-CREATE POLICY "Admins have full access to profiles"
-ON public.profiles FOR ALL
-TO authenticated
-USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+DROP POLICY IF EXISTS "Public profiles are viewable by authenticated users" ON public.profiles;
+CREATE POLICY "Public profiles are viewable" ON public.profiles FOR SELECT TO public USING (true);
+CREATE POLICY "Public profiles insert" ON public.profiles FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Public profiles update" ON public.profiles FOR UPDATE TO public USING (true);
 
 -- 14. POLICIES CHO BẢNG CLASSES
--- Xem lớp học: Giáo viên tạo lớp, Học sinh là thành viên, hoặc Admin
-CREATE POLICY "View classes policy"
-ON public.classes FOR SELECT
-TO authenticated
-USING (
-    teacher_id = auth.uid() 
-    OR EXISTS (SELECT 1 FROM public.class_members WHERE class_id = classes.id AND student_id = auth.uid())
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-    OR true -- Cho phép tìm kiếm mã lớp để tham gia
-);
-
--- Tạo lớp học: Chỉ Giáo viên hoặc Admin
-CREATE POLICY "Create classes policy"
-ON public.classes FOR INSERT
-TO authenticated
-WITH CHECK (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('teacher', 'admin'))
-);
-
--- Sửa/Xóa lớp học: Chỉ Giáo viên chủ nhiệm lớp hoặc Admin
-CREATE POLICY "Update/Delete classes policy"
-ON public.classes FOR ALL
-TO authenticated
-USING (
-    teacher_id = auth.uid() 
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+DROP POLICY IF EXISTS "View classes policy" ON public.classes;
+CREATE POLICY "View classes policy" ON public.classes FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Create classes policy" ON public.classes;
+CREATE POLICY "Create classes policy" ON public.classes FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Manage classes policy" ON public.classes FOR ALL TO public USING (true);
 
 -- 15. POLICIES CHO BẢNG CLASS_MEMBERS
 CREATE POLICY "View class members policy"

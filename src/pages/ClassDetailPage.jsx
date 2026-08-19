@@ -96,20 +96,20 @@ export const ClassDetailPage = () => {
         }
       }
 
-      // 3. Khớp với các lớp demo chuẩn nếu trùng ID
+      // 3. Khớp với các lớp demo chuẩn nếu trùng ID hoặc Code
       if (!loadedClass) {
-        if (id === 'c-8a2' || id === 'T8A2HD') {
+        if (id === 'c-8a2' || id === 'T8A2HD' || id === '1967afc6-ce3b-4c84-a640-b0d8a64ab28c') {
           loadedClass = {
-            id: 'c-8a2',
+            id: '1967afc6-ce3b-4c84-a640-b0d8a64ab28c',
             name: 'Lớp Toán 8A2 (Cơ bản)',
             grade: '8',
             code: 'T8A2HD',
             description: 'Lớp Đại số 8 Kết Nối Tri Thức',
             academic_year: '2025–2026'
           };
-        } else if (id === 'c-8a1' || id === 'T8A1HD') {
+        } else if (id === 'c-8a1' || id === 'T8A1HD' || id === '16e02a4b-d952-42a5-90f1-f2f1976b3077') {
           loadedClass = {
-            id: 'c-8a1',
+            id: '16e02a4b-d952-42a5-90f1-f2f1976b3077',
             name: 'Lớp Toán 8A1 (Nâng cao)',
             grade: '8',
             code: 'T8A1HD',
@@ -118,7 +118,7 @@ export const ClassDetailPage = () => {
           };
         } else {
           loadedClass = {
-            id: id || 'c-8a1',
+            id: id || '16e02a4b-d952-42a5-90f1-f2f1976b3077',
             name: `Lớp Toán 8 (${id})`,
             grade: '8',
             code: id || 'T8KNTT',

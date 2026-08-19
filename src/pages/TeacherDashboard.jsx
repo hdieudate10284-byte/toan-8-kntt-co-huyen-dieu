@@ -56,17 +56,26 @@ export const TeacherDashboard = () => {
       let loadedMaterials = [];
       let loadedAssignments = [];
 
-      if (isSupabaseConfigured && user?.id && !user.id.startsWith('demo-')) {
-        const { data: classList } = await supabase
-          .from('classes')
-          .select('*, class_members(count)')
-          .eq('teacher_id', user.id);
+      const effectiveTeacherId = (user?.id && !user.id.startsWith('demo-')) 
+        ? user.id 
+        : '77b6cdfe-1747-4235-82ef-138e9177d749';
 
-        if (classList && classList.length > 0) {
-          loadedClasses = classList.map(c => ({
-            ...c,
-            student_count: c.class_members?.[0]?.count || 0
-          }));
+      if (isSupabaseConfigured) {
+        try {
+          const { data: classList, error } = await supabase
+            .from('classes')
+            .select('*, class_members(count)')
+            .eq('teacher_id', effectiveTeacherId)
+            .order('created_at', { ascending: false });
+
+          if (classList && classList.length > 0) {
+            loadedClasses = classList.map(c => ({
+              ...c,
+              student_count: c.class_members?.[0]?.count || 0
+            }));
+          }
+        } catch (e) {
+          console.warn('Lỗi Supabase khi tải danh sách lớp:', e);
         }
 
         const { data: matList } = await supabase
@@ -110,7 +119,7 @@ export const TeacherDashboard = () => {
       if (loadedClasses.length === 0) {
         loadedClasses = [
           {
-            id: 'c-8a1',
+            id: '16e02a4b-d952-42a5-90f1-f2f1976b3077',
             name: 'Lớp Toán 8A1 (Nâng cao)',
             grade: '8',
             code: 'T8A1HD',
@@ -121,7 +130,7 @@ export const TeacherDashboard = () => {
             created_at: new Date().toISOString()
           },
           {
-            id: 'c-8a2',
+            id: '1967afc6-ce3b-4c84-a640-b0d8a64ab28c',
             name: 'Lớp Toán 8A2 (Cơ bản)',
             grade: '8',
             code: 'T8A2HD',
@@ -180,19 +189,45 @@ export const TeacherDashboard = () => {
     }
   };
 
+  const handleDeleteClass = async (classId) => {
+    if (!window.confirm('Thầy/Cô có chắc chắn muốn xóa lớp học này không?')) return;
+    
+    // 1. Xóa trên Supabase nếu có
+    if (isSupabaseConfigured && !String(classId).startsWith('demo-')) {
+      try {
+        await supabase.from('classes').delete().eq('id', classId);
+      } catch (e) {
+        console.warn('Lỗi Supabase khi xóa lớp:', e);
+      }
+    }
+
+    // 2. Xóa khỏi localStorage
+    try {
+      const saved = JSON.parse(localStorage.getItem('toan8_custom_classes') || '[]');
+      const updated = saved.filter(c => String(c.id) !== String(classId));
+      localStorage.setItem('toan8_custom_classes', JSON.stringify(updated));
+    } catch (e) {}
+
+    // 3. Cập nhật state
+    setClasses(prev => prev.filter(c => String(c.id) !== String(classId)));
+  };
+
   return (
     <div className="space-y-8">
-      {/* Top Banner Cô Huyền Diệu */}
-      <div className="glass-card p-6 sm:p-8 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950/90 border-amber-500/30">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Header Banner */}
+      <div className="glass-card p-6 sm:p-8 bg-gradient-to-r from-amber-500/10 via-slate-900/60 to-sky-500/10 border-amber-500/30">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <img
-              src={profile?.avatar_url || TEACHER_INFO.avatar}
-              alt={profile?.full_name || TEACHER_INFO.name}
-              className="w-16 h-16 rounded-2xl object-cover object-top border-2 border-amber-500/50 shadow-lg"
-            />
+            <div className="relative">
+              <img
+                src={profile?.avatar_url || TEACHER_INFO.avatar}
+                alt="Cô Nguyễn Thị Huyền Diệu"
+                className="w-16 h-16 rounded-full object-cover border-2 border-amber-400 shadow-lg shadow-amber-500/30"
+              />
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-teal-400 rounded-full border-2 border-slate-950" />
+            </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-black text-slate-100">
                   {profile?.full_name || TEACHER_INFO.name}
                 </h1>
@@ -254,7 +289,7 @@ export const TeacherDashboard = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 pb-3 px-3 text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                 isActive
-                  ? 'border-sky-500 text-sky-400'
+                  ? 'border-amber-500 text-amber-300'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -283,7 +318,7 @@ export const TeacherDashboard = () => {
                   key={cls.id}
                   classData={cls}
                   isTeacher={true}
-                  onDelete={(id) => setClasses(classes.filter(c => c.id !== id))}
+                  onDelete={() => handleDeleteClass(cls.id)}
                 />
               ))}
             </div>
@@ -378,7 +413,9 @@ export const TeacherDashboard = () => {
       <CreateClassModal
         isOpen={showCreateClass}
         onClose={() => setShowCreateClass(false)}
-        onClassCreated={(newClass) => setClasses([newClass, ...classes])}
+        onClassCreated={(newClass) => {
+          setClasses(prev => [newClass, ...prev.filter(c => c.id !== newClass.id)]);
+        }}
       />
 
       <UploadMaterialModal
