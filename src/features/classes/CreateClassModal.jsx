@@ -73,6 +73,15 @@ export const CreateClassModal = ({
         };
       }
 
+      // Lưu vào localStorage để đồng bộ ngay lập tức trên mọi trang
+      try {
+        const savedClasses = JSON.parse(localStorage.getItem('toan8_custom_classes') || '[]');
+        const updated = [createdClass, ...savedClasses.filter(c => c.id !== createdClass.id && c.code !== createdClass.code)];
+        localStorage.setItem('toan8_custom_classes', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Lỗi lưu localStorage lớp học:', e);
+      }
+
       onClassCreated(createdClass);
       onClose();
       setName('');

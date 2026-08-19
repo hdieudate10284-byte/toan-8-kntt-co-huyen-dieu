@@ -90,6 +90,22 @@ export const TeacherDashboard = () => {
         }
       }
 
+      // Kết hợp với danh sách lớp học lưu trên thiết bị
+      try {
+        const savedCustom = JSON.parse(localStorage.getItem('toan8_custom_classes') || '[]');
+        if (Array.isArray(savedCustom) && savedCustom.length > 0) {
+          const existingIds = new Set(loadedClasses.map(c => c.id));
+          for (const customCls of savedCustom) {
+            if (!existingIds.has(customCls.id)) {
+              loadedClasses.push(customCls);
+              existingIds.add(customCls.id);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi đọc lớp từ localStorage:', e);
+      }
+
       // Nếu chưa có dữ liệu từ DB hoặc đang ở Demo mode, nạp dữ liệu mẫu phong phú để test mượt mà
       if (loadedClasses.length === 0) {
         loadedClasses = [

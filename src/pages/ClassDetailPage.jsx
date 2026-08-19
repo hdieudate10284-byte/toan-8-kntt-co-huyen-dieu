@@ -50,45 +50,82 @@ export const ClassDetailPage = () => {
       let loadedAssignments = [];
       let loadedProgress = [];
 
-      if (isSupabaseConfigured && id && !id.startsWith('c-') && !id.startsWith('demo-')) {
-        // Lấy thông tin lớp
-        const { data: cls } = await supabase.from('classes').select('*').eq('id', id).single();
-        if (cls) loadedClass = cls;
+      if (isSupabaseConfigured && id && !id.startsWith('c-') && !id.startsWith('demo-') && !id.startsWith('class-')) {
+        try {
+          // Lấy thông tin lớp
+          const { data: cls } = await supabase.from('classes').select('*').eq('id', id).maybeSingle();
+          if (cls) loadedClass = cls;
 
-        // Lấy học sinh
-        const { data: members } = await supabase
-          .from('class_members')
-          .select('*, profiles(id, full_name, email, avatar_url)')
-          .eq('class_id', id);
+          // Lấy học sinh
+          const { data: members } = await supabase
+            .from('class_members')
+            .select('*, profiles(id, full_name, email, avatar_url)')
+            .eq('class_id', id);
 
-        if (members && members.length > 0) {
-          loadedStudents = members.map(m => ({
-            ...m.profiles,
-            status: m.status,
-            joined_at: m.joined_at
-          }));
+          if (members && members.length > 0) {
+            loadedStudents = members.map(m => ({
+              ...m.profiles,
+              status: m.status,
+              joined_at: m.joined_at
+            }));
+          }
+
+          // Lấy bài tập
+          const { data: asgs } = await supabase
+            .from('assignments')
+            .select('*')
+            .eq('class_id', id)
+            .order('due_date', { ascending: true });
+
+          if (asgs && asgs.length > 0) loadedAssignments = asgs;
+        } catch (err) {
+          console.warn('Lỗi tải lớp từ Supabase:', err);
         }
-
-        // Lấy bài tập
-        const { data: asgs } = await supabase
-          .from('assignments')
-          .select('*')
-          .eq('class_id', id)
-          .order('due_date', { ascending: true });
-
-        if (asgs && asgs.length > 0) loadedAssignments = asgs;
       }
 
-      // Mock fallback nếu không tìm thấy từ Supabase hoặc đang xem lớp demo
+      // 2. Tìm trong danh sách lớp tùy chỉnh đã lưu trong localStorage
       if (!loadedClass) {
-        loadedClass = {
-          id: id || 'c-8a1',
-          name: id === 'c-8a2' ? 'Lớp Toán 8A2 (Cơ bản)' : 'Lớp Toán 8A1 (Nâng cao)',
-          grade: '8',
-          code: id === 'c-8a2' ? 'T8A2HD' : 'T8A1HD',
-          description: 'Lớp học Toán 8 Kết Nối Tri Thức trường THCS Nguyễn Huệ',
-          academic_year: '2025–2026'
-        };
+        try {
+          const savedCustom = JSON.parse(localStorage.getItem('toan8_custom_classes') || '[]');
+          const matched = savedCustom.find(c => String(c.id) === String(id) || String(c.code).toUpperCase() === String(id).toUpperCase());
+          if (matched) {
+            loadedClass = matched;
+          }
+        } catch (e) {
+          console.warn('Lỗi đọc lớp từ localStorage:', e);
+        }
+      }
+
+      // 3. Khớp với các lớp demo chuẩn nếu trùng ID
+      if (!loadedClass) {
+        if (id === 'c-8a2' || id === 'T8A2HD') {
+          loadedClass = {
+            id: 'c-8a2',
+            name: 'Lớp Toán 8A2 (Cơ bản)',
+            grade: '8',
+            code: 'T8A2HD',
+            description: 'Lớp Đại số 8 Kết Nối Tri Thức',
+            academic_year: '2025–2026'
+          };
+        } else if (id === 'c-8a1' || id === 'T8A1HD') {
+          loadedClass = {
+            id: 'c-8a1',
+            name: 'Lớp Toán 8A1 (Nâng cao)',
+            grade: '8',
+            code: 'T8A1HD',
+            description: 'Lớp chuyên Toán 8 - THCS Nguyễn Huệ',
+            academic_year: '2025–2026'
+          };
+        } else {
+          loadedClass = {
+            id: id || 'c-8a1',
+            name: `Lớp Toán 8 (${id})`,
+            grade: '8',
+            code: id || 'T8KNTT',
+            description: 'Lớp học Toán 8 Kết Nối Tri Thức trường THCS Nguyễn Huệ',
+            academic_year: '2025–2026'
+          };
+        }
       }
 
       if (loadedStudents.length === 0) {
