@@ -4,7 +4,7 @@ import { TEACHER_INFO } from '../data/math8Curriculum';
 
 const AuthContext = createContext({});
 
-// Tài khoản hồ sơ mẫu chuẩn cho trải nghiệm người dùng
+// Tài khoản hồ sơ mẫu chuẩn cho trải nghiệm nhanh (Fallback Demo)
 const DEMO_PROFILES = {
   teacher: {
     id: 'demo-teacher-id',
@@ -32,14 +32,40 @@ const DEMO_PROFILES = {
   }
 };
 
+/**
+ * Dịch thông báo lỗi từ Supabase Auth sang Tiếng Việt dễ hiểu
+ */
+const translateAuthError = (message = '') => {
+  const msg = String(message).toLowerCase();
+  if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+    return 'Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại!';
+  }
+  if (msg.includes('user already registered') || msg.includes('already exists')) {
+    return 'Email này đã được đăng ký tài khoản. Vui lòng chuyển sang tab Đăng nhập!';
+  }
+  if (msg.includes('password should be at least') || msg.includes('weak password')) {
+    return 'Mật khẩu phải có tối thiểu 6 ký tự!';
+  }
+  if (msg.includes('unable to validate email') || msg.includes('invalid email')) {
+    return 'Địa chỉ email không hợp lệ. Vui lòng nhập đúng định dạng (ví dụ: ten@gmail.com)!';
+  }
+  if (msg.includes('rate limit') || msg.includes('too many requests')) {
+    return 'Bạn đã thử quá nhiều lần liên tiếp. Vui lòng đợi 1-2 phút rồi thử lại!';
+  }
+  if (msg.includes('database error saving new user')) {
+    return 'Đang lưu tài khoản... Vui lòng thử đăng nhập lại với email vừa tạo!';
+  }
+  return message || 'Đã có lỗi xảy ra trong quá trình xác thực. Vui lòng thử lại!';
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(() => {
     const savedRole = localStorage.getItem('toan8_current_role') || 'teacher';
     return DEMO_PROFILES[savedRole] || DEMO_PROFILES.teacher;
   });
-  const [loading, setLoading] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(!isSupabaseConfigured);
 
   // Lấy thông tin Profile từ bảng profiles trong Supabase
   const fetchProfile = async (userId) => {
@@ -48,43 +74,89 @@ export const AuthProvider = ({ children }) => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error) {
+      if (error || !data) {
         return null;
       }
       return data;
     } catch (err) {
-      console.warn('Lỗi khi tải profile:', err);
+      console.warn('Lỗi khi tải profile từ Supabase:', err);
       return null;
+    }
+  };
+
+  // Đồng bộ hoặc tạo mới profile cho user
+  const syncOrCreateProfile = async (authUser, extraMeta = {}) => {
+    if (!authUser?.id) return null;
+
+    try {
+      let existing = await fetchProfile(authUser.id);
+      if (existing) {
+        setProfile(existing);
+        localStorage.setItem('toan8_current_role', existing.role);
+        return existing;
+      }
+
+      // Tạo mới profile nếu chưa có
+      const role = extraMeta.role || authUser.user_metadata?.role || 'student';
+      const fullName = extraMeta.fullName || authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Học sinh';
+      const schoolName = extraMeta.schoolName || authUser.user_metadata?.school_name || 'THCS Nguyễn Huệ';
+
+      const newProf = {
+        id: authUser.id,
+        email: authUser.email,
+        full_name: fullName,
+        role: role,
+        school_name: schoolName,
+        avatar_url: authUser.user_metadata?.avatar_url || ''
+      };
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert(newProf)
+        .select()
+        .maybeSingle();
+
+      const finalProf = data || newProf;
+      setProfile(finalProf);
+      localStorage.setItem('toan8_current_role', finalProf.role);
+      return finalProf;
+    } catch (err) {
+      console.warn('Lỗi đồng bộ profile:', err);
+      const fallbackProf = {
+        id: authUser.id,
+        email: authUser.email,
+        full_name: extraMeta.fullName || authUser.email?.split('@')[0],
+        role: extraMeta.role || 'student',
+        school_name: 'THCS Nguyễn Huệ'
+      };
+      setProfile(fallbackProf);
+      return fallbackProf;
     }
   };
 
   useEffect(() => {
     const initAuth = async () => {
+      setLoading(true);
       try {
         if (isSupabaseConfigured) {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (session?.user && !error) {
             setUser(session.user);
-            const userProfile = await fetchProfile(session.user.id);
-            if (userProfile) {
-              setProfile(userProfile);
-            } else {
-              const fallbackRole = session.user.user_metadata?.role || 'student';
-              setProfile({
-                id: session.user.id,
-                email: session.user.email,
-                full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
-                role: fallbackRole,
-                school_name: session.user.user_metadata?.school_name || 'THCS Nguyễn Huệ',
-                avatar_url: ''
-              });
-            }
+            await syncOrCreateProfile(session.user);
+            setIsDemoMode(false);
+          } else {
+            setIsDemoMode(false);
           }
+        } else {
+          setIsDemoMode(true);
         }
       } catch (err) {
         console.warn('Lỗi khởi tạo Auth Supabase:', err);
+        setIsDemoMode(true);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -97,8 +169,12 @@ export const AuthProvider = ({ children }) => {
         const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (session?.user) {
             setUser(session.user);
-            const userProfile = await fetchProfile(session.user.id);
-            if (userProfile) setProfile(userProfile);
+            await syncOrCreateProfile(session.user);
+            setIsDemoMode(false);
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            const savedRole = localStorage.getItem('toan8_current_role') || 'student';
+            setProfile(DEMO_PROFILES[savedRole] || DEMO_PROFILES.student);
           }
         });
         subscription = data?.subscription;
@@ -114,84 +190,118 @@ export const AuthProvider = ({ children }) => {
 
   // Đăng nhập Email + Password
   const signIn = async (email, password) => {
-    if (isSupabaseConfigured) {
-      try {
+    setLoading(true);
+    try {
+      if (isSupabaseConfigured) {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
+          email: email.trim(),
+          password: password
         });
-        if (!error && data?.user) {
-          setUser(data.user);
-          const userProf = await fetchProfile(data.user.id);
-          if (userProf) setProfile(userProf);
-          return { success: true, data };
-        }
-      } catch (err) {
-        console.warn('Supabase auth attempt, falling back to local role:', err);
-      }
-    }
 
-    // Fallback role switch
-    let matchedRole = 'student';
-    if (email.toLowerCase().includes('dieu') || email.toLowerCase().includes('teacher')) {
-      matchedRole = 'teacher';
-    } else if (email.toLowerCase().includes('admin')) {
-      matchedRole = 'admin';
+        if (error) {
+          throw new Error(translateAuthError(error.message));
+        }
+
+        if (data?.user) {
+          setUser(data.user);
+          const userProf = await syncOrCreateProfile(data.user);
+          setIsDemoMode(false);
+          return { success: true, data, profile: userProf };
+        }
+      }
+
+      // Fallback demo mode nếu Supabase không phản hồi
+      let matchedRole = 'student';
+      if (email.toLowerCase().includes('dieu') || email.toLowerCase().includes('teacher')) {
+        matchedRole = 'teacher';
+      } else if (email.toLowerCase().includes('admin')) {
+        matchedRole = 'admin';
+      }
+      const demoProf = DEMO_PROFILES[matchedRole];
+      setProfile(demoProf);
+      setUser({ id: demoProf.id, email: demoProf.email });
+      localStorage.setItem('toan8_current_role', matchedRole);
+      return { success: true, data: { user: demoProf }, profile: demoProf };
+    } finally {
+      setLoading(false);
     }
-    const demoProf = DEMO_PROFILES[matchedRole];
-    setProfile(demoProf);
-    setUser({ id: demoProf.id, email: demoProf.email });
-    localStorage.setItem('toan8_current_role', matchedRole);
-    return { success: true, data: { user: demoProf } };
   };
 
   // Đăng ký tài khoản kèm Phân quyền Role
   const signUp = async (email, password, { fullName, role = 'student', schoolName = 'THCS Nguyễn Huệ' }) => {
-    if (isSupabaseConfigured) {
-      try {
+    setLoading(true);
+    try {
+      if (isSupabaseConfigured) {
         const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: email.trim(),
+          password: password,
           options: {
             data: {
-              full_name: fullName,
+              full_name: fullName.trim(),
               role: role,
-              school_name: schoolName
+              school_name: schoolName.trim()
             }
           }
         });
-        if (!error) {
-          return { success: true, data };
-        }
-      } catch (err) {
-        console.warn('Supabase signup attempt:', err);
-      }
-    }
 
-    const newDemoUser = {
-      id: `demo-${Date.now()}`,
-      email,
-      full_name: fullName,
-      role,
-      school_name: schoolName,
-      avatar_url: ''
-    };
-    setProfile(newDemoUser);
-    setUser({ id: newDemoUser.id, email });
-    localStorage.setItem('toan8_current_role', role);
-    return { success: true, data: { user: newDemoUser } };
+        if (error) {
+          throw new Error(translateAuthError(error.message));
+        }
+
+        if (data?.user) {
+          setUser(data.user);
+          const userProf = await syncOrCreateProfile(data.user, { fullName, role, schoolName });
+          setIsDemoMode(false);
+          return { success: true, data, profile: userProf };
+        }
+      }
+
+      // Fallback demo mode
+      const newDemoUser = {
+        id: `demo-${Date.now()}`,
+        email: email.trim(),
+        full_name: fullName.trim(),
+        role,
+        school_name: schoolName.trim(),
+        avatar_url: ''
+      };
+      setProfile(newDemoUser);
+      setUser({ id: newDemoUser.id, email: email.trim() });
+      localStorage.setItem('toan8_current_role', role);
+      return { success: true, data: { user: newDemoUser }, profile: newDemoUser };
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Đăng xuất
   const signOut = async () => {
+    setLoading(true);
     try {
       if (isSupabaseConfigured) {
         await supabase.auth.signOut();
       }
-    } catch (e) {}
-    setUser(null);
-    setProfile(DEMO_PROFILES.student);
-    localStorage.removeItem('toan8_current_role');
+    } catch (e) {
+      console.warn('Lỗi đăng xuất:', e);
+    } finally {
+      setUser(null);
+      setProfile(DEMO_PROFILES.student);
+      localStorage.removeItem('toan8_current_role');
+      setLoading(false);
+    }
+  };
+
+  // Quên mật khẩu
+  const resetPassword = async (email) => {
+    if (!email) throw new Error('Vui lòng nhập địa chỉ email của bạn!');
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin + '/auth?mode=reset'
+      });
+      if (error) throw new Error(translateAuthError(error.message));
+      return { success: true, data };
+    }
+    return { success: true };
   };
 
   // Đổi nhanh vai trò xem trước (Demo Role Switcher)
@@ -203,7 +313,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const role = profile?.role || 'teacher';
+  const role = profile?.role || 'student';
   const isAdmin = role === 'admin';
   const isTeacher = role === 'teacher' || role === 'admin';
   const isStudent = role === 'student';
@@ -222,8 +332,9 @@ export const AuthProvider = ({ children }) => {
         signIn,
         signUp,
         signOut,
+        resetPassword,
         switchDemoRole,
-        refreshProfile: () => user?.id && fetchProfile(user.id).then(setProfile)
+        refreshProfile: () => user?.id && fetchProfile(user.id).then((p) => p && setProfile(p))
       }}
     >
       {children}
@@ -232,3 +343,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+export default AuthContext;
+

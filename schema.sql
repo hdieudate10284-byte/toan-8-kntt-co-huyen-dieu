@@ -138,31 +138,48 @@ CREATE TABLE IF NOT EXISTS public.parent_reports (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
-    default_role user_role;
+    default_role public.user_role;
     user_fullname TEXT;
     user_school TEXT;
+    meta_role TEXT;
 BEGIN
-    IF new.raw_user_meta_data->>'role' = 'teacher' THEN
-        default_role := 'teacher'::user_role;
-    ELSIF new.raw_user_meta_data->>'role' = 'admin' THEN
-        default_role := 'admin'::user_role;
+    meta_role := COALESCE(new.raw_user_meta_data->>'role', 'student');
+    
+    IF meta_role = 'teacher' THEN
+        default_role := 'teacher'::public.user_role;
+    ELSIF meta_role = 'admin' THEN
+        default_role := 'admin'::public.user_role;
     ELSE
-        default_role := 'student'::user_role;
+        default_role := 'student'::public.user_role;
     END IF;
 
     user_fullname := COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
     user_school := COALESCE(new.raw_user_meta_data->>'school_name', 'THCS Nguyễn Huệ');
 
     INSERT INTO public.profiles (id, email, full_name, role, avatar_url, school_name)
-    VALUES (new.id, new.email, user_fullname, default_role, COALESCE(new.raw_user_meta_data->>'avatar_url', ''), user_school)
-    ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.role, updated_at = now();
+    VALUES (
+        new.id, 
+        new.email, 
+        user_fullname, 
+        default_role, 
+        COALESCE(new.raw_user_meta_data->>'avatar_url', ''), 
+        user_school
+    )
+    ON CONFLICT (id) DO UPDATE 
+    SET full_name = EXCLUDED.full_name, 
+        role = EXCLUDED.role, 
+        updated_at = now();
 
     RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created AFTER INSERT OR UPDATE ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+CREATE TRIGGER on_auth_user_created 
+AFTER INSERT OR UPDATE ON auth.users 
+FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- 11. BẬT ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
