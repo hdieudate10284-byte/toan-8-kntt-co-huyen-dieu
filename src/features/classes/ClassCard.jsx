@@ -24,7 +24,7 @@ export const ClassCard = ({
         {/* Top Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-400 border border-sky-500/30">
-            Khối {classData.grade || '8'} • {classData.academic_year || '2024-2025'}
+            Khối {classData.grade || '8'} • {classData.academic_year || '2025–2026'}
           </span>
 
           {/* Join Code badge with quick copy */}

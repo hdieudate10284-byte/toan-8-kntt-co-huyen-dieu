@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.classes (
     description TEXT,
     code VARCHAR(12) UNIQUE NOT NULL, -- Mã gia nhập lớp (Join Code)
     teacher_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    academic_year VARCHAR(20) DEFAULT '2024 - 2025',
+    academic_year VARCHAR(20) DEFAULT '2025 - 2026',
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );

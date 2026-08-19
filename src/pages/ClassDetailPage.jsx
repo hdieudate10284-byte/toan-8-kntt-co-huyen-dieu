@@ -87,7 +87,7 @@ export const ClassDetailPage = () => {
           grade: '8',
           code: id === 'c-8a2' ? 'T8A2HD' : 'T8A1HD',
           description: 'Lớp học Toán 8 Kết Nối Tri Thức trường THCS Nguyễn Huệ',
-          academic_year: '2024 - 2025'
+          academic_year: '2025–2026'
         };
       }
 
@@ -152,7 +152,7 @@ export const ClassDetailPage = () => {
           <div>
             <div className="flex items-center gap-2.5 mb-2">
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                Khối {classInfo?.grade || '8'} • {classInfo?.academic_year || '2024-2025'}
+                Khối {classInfo?.grade || '8'} • {classInfo?.academic_year || '2025–2026'}
               </span>
               <span className="text-xs text-slate-400">THCS Nguyễn Huệ</span>
             </div>
