@@ -32,12 +32,16 @@ export class ErrorBoundary extends React.Component {
               variant="gold"
               icon={RefreshCw}
               onClick={() => {
+                try {
+                  localStorage.removeItem('toan8_favorite_game_links');
+                  localStorage.removeItem('toan8_dismissed_update_version');
+                } catch (e) {}
                 this.setState({ hasError: false });
                 window.location.reload();
               }}
               className="w-full btn-gold-glow"
             >
-              Tải lại trang
+              Khôi phục & Tải lại trang
             </Button>
           </div>
         </div>

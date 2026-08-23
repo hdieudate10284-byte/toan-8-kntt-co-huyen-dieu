@@ -52,7 +52,8 @@ export const EmbedGameViewer = ({
   const [savedLinks, setSavedLinks] = useState(() => {
     try {
       const stored = localStorage.getItem('toan8_favorite_game_links');
-      return stored ? JSON.parse(stored) : DEFAULT_PRESET_GAMES;
+      const parsed = stored ? JSON.parse(stored) : null;
+      return (Array.isArray(parsed) && parsed.length > 0) ? parsed : DEFAULT_PRESET_GAMES;
     } catch {
       return DEFAULT_PRESET_GAMES;
     }
@@ -286,7 +287,7 @@ export const EmbedGameViewer = ({
 
           {/* Danh sách các nút chọn Game đã lưu */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {savedLinks.map((game) => {
+            {(Array.isArray(savedLinks) ? savedLinks : DEFAULT_PRESET_GAMES).map((game) => {
               const isSelected = currentUrl === game.url;
               return (
                 <div
