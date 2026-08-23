@@ -16,6 +16,7 @@ import PlayGamePage from '../pages/PlayGamePage';
 import AnalyticsPage from '../pages/AnalyticsPage';
 import AiTutorPage from '../pages/AiTutorPage';
 import ParentReportViewPage from '../pages/ParentReportViewPage';
+import UpdateNotificationToast from '../components/common/UpdateNotificationToast';
 
 // Protected Route Guards
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -83,6 +84,9 @@ export const AppContent = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+
+      {/* Update Notification Toast */}
+      <UpdateNotificationToast />
 
       {/* Floating AI Assistant Widget Button */}
       <div className="fixed bottom-6 right-6 z-40 animate-bounce">
