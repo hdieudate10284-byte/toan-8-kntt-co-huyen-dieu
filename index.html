@@ -14,29 +14,15 @@
     
     <!-- KaTeX CSS for Math Formulas -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" integrity="sha384-zh0CIslj+VczCZTl238ww00ndlBQ9STN39h7qxHu3lSiWCcNQKLSgdlG47cUdzTm" crossorigin="anonymous">
-    
-    <!-- Auto-recovery script for stale cache / script load errors -->
-    <script>
-      window.addEventListener('error', function(e) {
-        if (e.message && (e.message.includes('Loading chunk') || e.message.includes('Script error') || e.message.includes('Importing a module script failed'))) {
-          var btn = document.getElementById('fallback-reload-btn');
-          if (btn) btn.style.display = 'inline-block';
-        }
-      }, true);
-    </script>
   </head>
   <body class="bg-slate-950 text-slate-100 antialiased selection:bg-sky-500 selection:text-white min-h-screen">
     <div id="root">
-      {/* Fallback Loading UI displayed before React mounts or during initial load */}
+      <!-- Fallback Loading UI -->
       <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; text-align: center; padding: 24px;">
-        <div style="width: 52px; height: 52px; border: 4px solid rgba(56, 189, 248, 0.2); border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;"></div>
-        <h2 style="font-size: 20px; font-weight: 800; color: #f8fafc; margin: 0 0 6px;">Toán 8 KNTT • THCS Nguyễn Huệ</h2>
-        <p style="font-size: 13px; font-weight: 700; color: #fbbf24; margin: 0 0 16px;">Cô Nguyễn Thị Huyền Diệu</p>
-        <p style="font-size: 12px; color: #94a3b8; margin: 0;">Đang tải ứng dụng học tập online...</p>
-        
-        <button id="fallback-reload-btn" onclick="try{localStorage.clear();}catch(e){} window.location.reload(true);" style="display: none; margin-top: 24px; padding: 10px 20px; background-color: #f59e0b; color: #020617; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(245,158,11,0.4);">
-          ⚡ Tải Lại Trang Web (Cập Nhật Bản Mới)
-        </button>
+        <div style="width: 48px; height: 48px; border: 4px solid rgba(56, 189, 248, 0.2); border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;"></div>
+        <h2 style="font-size: 18px; font-weight: 800; color: #f8fafc; margin: 0 0 6px;">Toán 8 KNTT • THCS Nguyễn Huệ</h2>
+        <p style="font-size: 13px; font-weight: 700; color: #fbbf24; margin: 0 0 14px;">Cô Nguyễn Thị Huyền Diệu</p>
+        <p style="font-size: 12px; color: #94a3b8; margin: 0;">Đang khởi tạo hệ thống học tập online...</p>
       </div>
       <style>
         @keyframes spin { to { transform: rotate(360deg); } }
