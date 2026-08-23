@@ -98,14 +98,41 @@ export const ClassDetailPage = () => {
 
       // 3. Khớp với các lớp demo chuẩn nếu trùng ID hoặc Code
       if (!loadedClass) {
-        if (id === 'c-8a2' || id === 'T8A2HD' || id === '1967afc6-ce3b-4c84-a640-b0d8a64ab28c') {
+        if (id === 'c-8-6' || id === 'T806HD' || id === 'T846AM' || id === '8/6') {
+          loadedClass = {
+            id: 'c-8-6',
+            name: 'Lớp 8/6',
+            grade: '8',
+            code: 'T806HD',
+            description: 'Lớp Toán 8/6 - Trường THCS Nguyễn Huệ (Cô Nguyễn Thị Huyền Diệu)',
+            academic_year: '2026–2027'
+          };
+        } else if (id === 'c-8-4' || id === 'T804HD' || id === '8/4') {
+          loadedClass = {
+            id: 'c-8-4',
+            name: 'Lớp 8/4',
+            grade: '8',
+            code: 'T804HD',
+            description: 'Lớp Toán 8/4 - Trường THCS Nguyễn Huệ (Cô Nguyễn Thị Huyền Diệu)',
+            academic_year: '2026–2027'
+          };
+        } else if (id === 'c-8-8' || id === 'T808HD' || id === 'T8AZGQX' || id === '8/8') {
+          loadedClass = {
+            id: 'c-8-8',
+            name: 'Lớp 8/8',
+            grade: '8',
+            code: 'T808HD',
+            description: 'Lớp Toán 8/8 - Trường THCS Nguyễn Huệ (Cô Nguyễn Thị Huyền Diệu)',
+            academic_year: '2026–2027'
+          };
+        } else if (id === 'c-8a2' || id === 'T8A2HD' || id === '1967afc6-ce3b-4c84-a640-b0d8a64ab28c') {
           loadedClass = {
             id: '1967afc6-ce3b-4c84-a640-b0d8a64ab28c',
             name: 'Lớp Toán 8A2 (Cơ bản)',
             grade: '8',
             code: 'T8A2HD',
             description: 'Lớp Đại số 8 Kết Nối Tri Thức',
-            academic_year: '2025–2026'
+            academic_year: '2026–2027'
           };
         } else if (id === 'c-8a1' || id === 'T8A1HD' || id === '16e02a4b-d952-42a5-90f1-f2f1976b3077') {
           loadedClass = {
@@ -114,16 +141,16 @@ export const ClassDetailPage = () => {
             grade: '8',
             code: 'T8A1HD',
             description: 'Lớp chuyên Toán 8 - THCS Nguyễn Huệ',
-            academic_year: '2025–2026'
+            academic_year: '2026–2027'
           };
         } else {
           loadedClass = {
-            id: id || '16e02a4b-d952-42a5-90f1-f2f1976b3077',
+            id: id || 'c-8-6',
             name: `Lớp Toán 8 (${id})`,
             grade: '8',
-            code: id || 'T8KNTT',
+            code: id || 'T806HD',
             description: 'Lớp học Toán 8 Kết Nối Tri Thức trường THCS Nguyễn Huệ',
-            academic_year: '2025–2026'
+            academic_year: '2026–2027'
           };
         }
       }
@@ -135,6 +162,29 @@ export const ClassDetailPage = () => {
           { id: '3', full_name: 'Lê Hoàng Nam', email: 'nam.le@nguyenhue.edu.vn', status: 'active' },
           { id: '4', full_name: 'Phạm Quỳnh Như', email: 'nhu.pham@nguyenhue.edu.vn', status: 'active' }
         ];
+      }
+
+      // Đọc bài tập từ localStorage cho lớp học này
+      try {
+        const savedCustomAsgs = JSON.parse(localStorage.getItem('toan8_custom_assignments') || '[]');
+        if (Array.isArray(savedCustomAsgs) && savedCustomAsgs.length > 0) {
+          const matchedAsgs = savedCustomAsgs.filter(a =>
+            String(a.class_id) === String(id) ||
+            String(a.class_id) === String(loadedClass?.id) ||
+            (loadedClass?.name && String(a.class_name).toLowerCase().includes(String(loadedClass?.name).toLowerCase())) ||
+            (loadedClass?.code && String(a.class_id).toUpperCase() === String(loadedClass?.code).toUpperCase())
+          );
+
+          const existingIds = new Set(loadedAssignments.map(a => String(a.id)));
+          for (const customAsg of matchedAsgs) {
+            if (!existingIds.has(String(customAsg.id))) {
+              loadedAssignments.unshift(customAsg);
+              existingIds.add(String(customAsg.id));
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi đọc bài tập từ localStorage:', e);
       }
 
       if (loadedAssignments.length === 0) {
@@ -189,7 +239,7 @@ export const ClassDetailPage = () => {
           <div>
             <div className="flex items-center gap-2.5 mb-2">
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                Khối {classInfo?.grade || '8'} • {classInfo?.academic_year || '2025–2026'}
+                Khối {classInfo?.grade || '8'} • {(!classInfo?.academic_year || String(classInfo.academic_year).includes('2025')) ? '2026–2027' : classInfo.academic_year}
               </span>
               <span className="text-xs text-slate-400">THCS Nguyễn Huệ</span>
             </div>

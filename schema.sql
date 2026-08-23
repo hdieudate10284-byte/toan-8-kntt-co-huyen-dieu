@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.classes (
     description TEXT,
     code VARCHAR(12) UNIQUE NOT NULL,
     teacher_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    academic_year VARCHAR(20) DEFAULT '2025 - 2026',
+    academic_year VARCHAR(20) DEFAULT '2026 - 2027',
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS public.assignments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     description TEXT,
+    external_link TEXT,
     material_id UUID REFERENCES public.materials(id) ON DELETE SET NULL,
     class_id UUID NOT NULL REFERENCES public.classes(id) ON DELETE CASCADE,
     due_date TIMESTAMPTZ,
@@ -96,6 +97,8 @@ CREATE TABLE IF NOT EXISTS public.assignments (
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
+
+ALTER TABLE public.assignments ADD COLUMN IF NOT EXISTS external_link TEXT;
 
 -- 8. BẢNG STUDENT_PROGRESS (TIẾN ĐỘ & ĐIỂM SỐ)
 CREATE TABLE IF NOT EXISTS public.student_progress (
@@ -201,6 +204,13 @@ CREATE POLICY "View classes policy" ON public.classes FOR SELECT TO public USING
 DROP POLICY IF EXISTS "Create classes policy" ON public.classes;
 CREATE POLICY "Create classes policy" ON public.classes FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Manage classes policy" ON public.classes FOR ALL TO public USING (true);
+
+DROP POLICY IF EXISTS "View class members policy" ON public.class_members;
+CREATE POLICY "View class members policy" ON public.class_members FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Join class members policy" ON public.class_members;
+CREATE POLICY "Join class members policy" ON public.class_members FOR INSERT TO public WITH CHECK (true);
+DROP POLICY IF EXISTS "Manage class members policy" ON public.class_members;
+CREATE POLICY "Manage class members policy" ON public.class_members FOR ALL TO public USING (true);
 
 DROP POLICY IF EXISTS "View materials policy" ON public.materials;
 CREATE POLICY "View materials policy" ON public.materials FOR SELECT TO public USING (true);

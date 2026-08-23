@@ -71,7 +71,8 @@ export const TeacherDashboard = () => {
           if (classList && classList.length > 0) {
             loadedClasses = classList.map(c => ({
               ...c,
-              student_count: c.class_members?.[0]?.count || 0
+              student_count: c.class_members?.[0]?.count || 0,
+              academic_year: (!c.academic_year || String(c.academic_year).includes('2025')) ? '2026–2027' : c.academic_year
             }));
           }
         } catch (e) {
@@ -99,31 +100,88 @@ export const TeacherDashboard = () => {
         }
       }
 
-      // Kết hợp với danh sách lớp học lưu trên thiết bị
+      // Kết hợp với danh sách lớp học & bài tập lưu trên thiết bị
       try {
         const savedCustom = JSON.parse(localStorage.getItem('toan8_custom_classes') || '[]');
         if (Array.isArray(savedCustom) && savedCustom.length > 0) {
+          let updatedLocalStorage = false;
+          const normalizedCustom = savedCustom.map(cls => {
+            if (!cls.academic_year || String(cls.academic_year).includes('2025')) {
+              updatedLocalStorage = true;
+              return { ...cls, academic_year: '2026–2027' };
+            }
+            return cls;
+          });
+
+          if (updatedLocalStorage) {
+            localStorage.setItem('toan8_custom_classes', JSON.stringify(normalizedCustom));
+          }
+
           const existingIds = new Set(loadedClasses.map(c => c.id));
-          for (const customCls of savedCustom) {
+          for (const customCls of normalizedCustom) {
             if (!existingIds.has(customCls.id)) {
               loadedClasses.push(customCls);
               existingIds.add(customCls.id);
             }
           }
         }
+
+        const savedAsgs = JSON.parse(localStorage.getItem('toan8_custom_assignments') || '[]');
+        if (Array.isArray(savedAsgs) && savedAsgs.length > 0) {
+          const existingAsgIds = new Set(loadedAssignments.map(a => String(a.id)));
+          for (const customAsg of savedAsgs) {
+            if (!existingAsgIds.has(String(customAsg.id))) {
+              loadedAssignments.unshift(customAsg);
+              existingAsgIds.add(String(customAsg.id));
+            }
+          }
+        }
       } catch (e) {
-        console.warn('Lỗi đọc lớp từ localStorage:', e);
+        console.warn('Lỗi đọc dữ liệu từ localStorage:', e);
       }
 
       // Nếu chưa có dữ liệu từ DB hoặc đang ở Demo mode, nạp dữ liệu mẫu phong phú để test mượt mà
       if (loadedClasses.length === 0) {
         loadedClasses = [
           {
+            id: 'c-8-6',
+            name: 'Lớp 8/6',
+            grade: '8',
+            code: 'T806HD',
+            academic_year: '2026–2027',
+            description: 'Lớp Toán 8/6 - Trường THCS Nguyễn Huệ (Cô Nguyễn Thị Huyền Diệu)',
+            student_count: 36,
+            assignment_count: 4,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 'c-8-4',
+            name: 'Lớp 8/4',
+            grade: '8',
+            code: 'T804HD',
+            academic_year: '2026–2027',
+            description: 'Lớp Toán 8/4 - Trường THCS Nguyễn Huệ (Cô Nguyễn Thị Huyền Diệu)',
+            student_count: 35,
+            assignment_count: 3,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 'c-8-8',
+            name: 'Lớp 8/8',
+            grade: '8',
+            code: 'T808HD',
+            academic_year: '2026–2027',
+            description: 'Lớp Toán 8/8 - Trường THCS Nguyễn Huệ (Cô Nguyễn Thị Huyền Diệu)',
+            student_count: 34,
+            assignment_count: 3,
+            created_at: new Date().toISOString()
+          },
+          {
             id: '16e02a4b-d952-42a5-90f1-f2f1976b3077',
             name: 'Lớp Toán 8A1 (Nâng cao)',
             grade: '8',
             code: 'T8A1HD',
-            academic_year: '2025–2026',
+            academic_year: '2026–2027',
             description: 'Lớp chuyên Toán 8 - THCS Nguyễn Huệ',
             student_count: 32,
             assignment_count: 4,
@@ -134,7 +192,7 @@ export const TeacherDashboard = () => {
             name: 'Lớp Toán 8A2 (Cơ bản)',
             grade: '8',
             code: 'T8A2HD',
-            academic_year: '2025–2026',
+            academic_year: '2026–2027',
             description: 'Lớp Đại số 8 Kết Nối Tri Thức',
             student_count: 28,
             assignment_count: 3,
@@ -170,11 +228,28 @@ export const TeacherDashboard = () => {
       if (loadedAssignments.length === 0) {
         loadedAssignments = [
           {
-            id: 'asg-1',
-            title: 'Luyện tập 7 Hằng đẳng thức đáng nhớ & nộp kết quả',
-            class_name: 'Lớp Toán 8A1 (Nâng cao)',
+            id: 'asg-86-1',
+            title: 'Phiếu bài tập Bài 6: 7 Hằng đẳng thức đáng nhớ (Năm học 2026-2027)',
+            class_name: 'Lớp 8/6',
+            external_link: 'https://drive.google.com/file/d/1Toan8KNTT_PhieuBaiTap7HDT/view',
+            due_date: new Date(Date.now() + 86400000 * 5).toISOString(),
+            description: 'Các em nhấp vào link Google Drive đính kèm để mở phiếu bài tập hoặc tham gia Đấu trường Game rèn luyện phản xạ.'
+          },
+          {
+            id: 'asg-84-1',
+            title: 'Bài tập ôn luyện Chương 1: Đa thức nhiều biến',
+            class_name: 'Lớp 8/4',
+            external_link: 'https://drive.google.com/file/d/1Toan8KNTT_PhieuDonThucDaThuc/view',
+            due_date: new Date(Date.now() + 86400000 * 4).toISOString(),
+            description: 'Hoàn thành phiếu bài tập tự luyện và đối chiếu lời giải chi tiết của Cô Huyền Diệu.'
+          },
+          {
+            id: 'asg-88-1',
+            title: 'Kiểm tra trắc nghiệm online Toán 8 - 15 phút (Google Forms)',
+            class_name: 'Lớp 8/8',
+            external_link: 'https://forms.gle/Toan8KNTT_KiemTra15Phut',
             due_date: new Date(Date.now() + 86400000 * 3).toISOString(),
-            description: 'Các em vào góc Game chơi Đấu trường HĐT để đạt từ 80 điểm trở lên.'
+            description: 'Các em mở link Google Forms đính kèm để hoàn thành bài kiểm tra 15 phút trực tuyến.'
           }
         ];
       }
@@ -372,15 +447,33 @@ export const TeacherDashboard = () => {
 
           {/* Tab 3: Assignments */}
           {activeTab === 'assignments' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {assignments.map((asg) => (
-                <AssignmentCard
-                  key={asg.id}
-                  assignment={asg}
-                  isTeacher={true}
-                  onViewDetails={() => setActiveTab('analytics')}
-                />
-              ))}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Danh sách Bài tập & Nhiệm vụ đã giao</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Quản lý bài tập online, phiếu đính kèm link Drive/Forms và tiến độ học sinh</p>
+                </div>
+                <Button
+                  variant="gold"
+                  size="sm"
+                  icon={CalendarPlus}
+                  onClick={() => setShowCreateAssignment(true)}
+                  className="btn-gold-glow flex-shrink-0"
+                >
+                  Giao bài & Úp link bài tập mới
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {assignments.map((asg) => (
+                  <AssignmentCard
+                    key={asg.id}
+                    assignment={asg}
+                    isTeacher={true}
+                    onViewDetails={() => setActiveTab('analytics')}
+                  />
+                ))}
+              </div>
             </div>
           )}
 

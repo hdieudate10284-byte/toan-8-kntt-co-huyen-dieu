@@ -109,14 +109,14 @@ export const CurriculumPage = () => {
                   <Sparkles className="w-4 h-4 text-amber-400" />
                   Công thức trọng tâm (Bộ nhớ siêu đẳng)
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {currentLesson.keyFormulas?.map((f, idx) => (
                     <div
                       key={idx}
-                      className="p-4 rounded-2xl bg-slate-800/90 border border-slate-700/80 shadow-inner text-center"
+                      className="p-4 rounded-2xl bg-slate-800/90 border border-slate-700/80 shadow-inner text-center overflow-hidden flex flex-col justify-center items-center min-w-0"
                     >
                       <p className="text-xs text-slate-400 mb-2 font-semibold">{f.label}</p>
-                      <div className="text-xl font-bold text-sky-300">
+                      <div className="w-full overflow-x-auto text-sm sm:text-base md:text-lg font-bold text-sky-300 py-1">
                         <MathRenderer formula={f.latex} displayMode={true} />
                       </div>
                     </div>

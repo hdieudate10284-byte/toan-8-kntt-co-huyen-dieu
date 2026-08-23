@@ -18,13 +18,17 @@ export const ClassCard = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const displayYear = (!classData?.academic_year || String(classData.academic_year).includes('2025'))
+    ? '2026–2027'
+    : classData.academic_year;
+
   return (
     <div className="glass-card-hover p-6 flex flex-col justify-between group">
       <div>
         {/* Top Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-400 border border-sky-500/30">
-            Khối {classData.grade || '8'} • {classData.academic_year || '2025–2026'}
+            Khối {classData.grade || '8'} • {displayYear}
           </span>
 
           {/* Join Code badge with quick copy */}

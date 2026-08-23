@@ -38,7 +38,7 @@ export const MathRenderer = ({ formula = '', displayMode = false, className = ''
 
   return (
     <span
-      className={`math-rendered-formula ${displayMode ? 'block text-center my-2' : 'inline-block'} ${className}`}
+      className={`math-rendered-formula ${displayMode ? 'block text-center my-1.5 max-w-full overflow-x-auto overflow-y-hidden py-1' : 'inline-block'} ${className}`}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

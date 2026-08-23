@@ -30,8 +30,8 @@ export const GameHub = () => {
       case 'game_wordwall_embed':
         return (
           <EmbedGameViewer
-            title="Wordwall: Đa thức & 7 Hằng đẳng thức"
-            embedUrl="https://wordwall.net/embed/7872635954494a8f94cb4c4d5ff1cfa5?themeId=1&templateId=5&issueId=0"
+            title="🎯 Wordwall & Trò Chơi Tương Tác Toán 8"
+            embedUrl="https://wordwall.net"
           />
         );
       default:

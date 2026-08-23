@@ -344,7 +344,7 @@ export const MATH_GAMES_CATALOG = [
     category: "Chương 1 & Chương 2",
     description: "Trò chơi nhúng trực tiếp từ nền tảng Wordwall giúp học sinh luyện tập tương tác sinh động.",
     type: "game_iframe",
-    embedUrl: "https://wordwall.net/embed/7872635954494a8f94cb4c4d5ff1cfa5?themeId=1&templateId=5&issueId=0",
+    embedUrl: "https://wordwall.net",
     difficulty: "Dễ",
     tags: ["Wordwall", "Nhúng iFrame"]
   }

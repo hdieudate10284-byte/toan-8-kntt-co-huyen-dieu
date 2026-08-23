@@ -24,7 +24,7 @@ export const ParentReportViewPage = () => {
     studentName: "Nguyễn Văn An",
     className: "Lớp Toán 8A1",
     school: "Trường THCS Nguyễn Huệ",
-    week: "Tuần 4 - Học kỳ I (Năm học 2025 - 2026)",
+    week: "Tuần 4 - Học kỳ I (Năm học 2026 - 2027)",
     subject: "Toán học 8 - Bộ sách Kết Nối Tri Thức",
     teacher: TEACHER_INFO.name,
     teacherAvatar: TEACHER_INFO.avatar,

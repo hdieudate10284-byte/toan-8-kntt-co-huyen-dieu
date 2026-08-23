@@ -57,6 +57,9 @@ export const JoinClassModal = ({
           if (joinError.code === '23505') { // Unique constraint
             throw new Error('Bạn đã tham gia lớp học này từ trước rồi!');
           }
+          if (joinError.message?.includes('row-level security policy') || joinError.code === '42501') {
+            throw new Error('Lỗi phân quyền CSDL (RLS Policy). Cô/Thầy cần chạy câu lệnh SQL cấp quyền cho bảng class_members trên trang Supabase!');
+          }
           throw joinError;
         }
 

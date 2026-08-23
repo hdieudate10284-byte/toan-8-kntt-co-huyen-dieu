@@ -46,7 +46,10 @@ export const StudentDashboard = () => {
           .eq('student_id', user.id);
 
         if (memberClasses && memberClasses.length > 0) {
-          loadedClasses = memberClasses.map((m) => m.classes).filter(Boolean);
+          loadedClasses = memberClasses.map((m) => m.classes).filter(Boolean).map(c => ({
+            ...c,
+            academic_year: (!c.academic_year || String(c.academic_year).includes('2025')) ? '2026–2027' : c.academic_year
+          }));
         }
 
         // Lấy danh sách bài tập được giao
@@ -63,16 +66,77 @@ export const StudentDashboard = () => {
         }
       }
 
+      // Đọc các lớp học & bài tập đã giao được lưu trên thiết bị
+      try {
+        const savedCustom = JSON.parse(localStorage.getItem('toan8_custom_classes') || '[]');
+        if (Array.isArray(savedCustom) && savedCustom.length > 0) {
+          let updatedLocalStorage = false;
+          const normalizedCustom = savedCustom.map(cls => {
+            if (!cls.academic_year || String(cls.academic_year).includes('2025')) {
+              updatedLocalStorage = true;
+              return { ...cls, academic_year: '2026–2027' };
+            }
+            return cls;
+          });
+
+          if (updatedLocalStorage) {
+            localStorage.setItem('toan8_custom_classes', JSON.stringify(normalizedCustom));
+          }
+
+          const existingIds = new Set(loadedClasses.map(c => c.id));
+          for (const customCls of normalizedCustom) {
+            if (!existingIds.has(customCls.id)) {
+              loadedClasses.push(customCls);
+              existingIds.add(customCls.id);
+            }
+          }
+        }
+
+        const savedCustomAsgs = JSON.parse(localStorage.getItem('toan8_custom_assignments') || '[]');
+        if (Array.isArray(savedCustomAsgs) && savedCustomAsgs.length > 0) {
+          const existingIds = new Set(loadedAssignments.map(a => String(a.id)));
+          for (const customAsg of savedCustomAsgs) {
+            if (!existingIds.has(String(customAsg.id))) {
+              loadedAssignments.unshift(customAsg);
+              existingIds.add(String(customAsg.id));
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi đọc dữ liệu từ localStorage:', e);
+      }
+
       // Mock demo fallback khi chưa có dữ liệu DB
       if (loadedClasses.length === 0) {
         loadedClasses = [
           {
-            id: 'demo-class-8a1',
-            name: 'Lớp Toán 8A1 (Cô Huyền Diệu)',
+            id: 'c-8-6',
+            name: 'Lớp 8/6',
             grade: '8',
-            code: 'T8A1HD',
-            description: 'Lớp học Toán 8 Kết Nối Tri Thức trường THCS Nguyễn Huệ',
-            student_count: 32,
+            code: 'T806HD',
+            academic_year: '2026–2027',
+            description: 'Lớp Toán 8/6 - Trường THCS Nguyễn Huệ (Cô Nguyễn Thị Huyền Diệu)',
+            student_count: 36,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 'c-8-4',
+            name: 'Lớp 8/4',
+            grade: '8',
+            code: 'T804HD',
+            academic_year: '2026–2027',
+            description: 'Lớp Toán 8/4 - Trường THCS Nguyễn Huệ (Cô Nguyễn Thị Huyền Diệu)',
+            student_count: 35,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 'c-8-8',
+            name: 'Lớp 8/8',
+            grade: '8',
+            code: 'T808HD',
+            academic_year: '2026–2027',
+            description: 'Lớp Toán 8/8 - Trường THCS Nguyễn Huệ (Cô Nguyễn Thị Huyền Diệu)',
+            student_count: 34,
             created_at: new Date().toISOString()
           }
         ];
@@ -82,17 +146,27 @@ export const StudentDashboard = () => {
         loadedAssignments = [
           {
             id: 'asg-demo-1',
-            title: 'Nhiệm vụ 1: Đấu trường 7 Hằng đẳng thức (Chương 2)',
-            class_name: 'Lớp Toán 8A1',
-            due_date: new Date(Date.now() + 86400000 * 2).toISOString(),
-            description: 'Vào Đấu trường chơi ghép 7 Hằng đẳng thức đạt từ 80 điểm trở lên.'
+            title: 'Phiếu bài tập Bài 6: 7 Hằng đẳng thức đáng nhớ (Năm học 2026-2027)',
+            class_name: 'Lớp 8/6',
+            external_link: 'https://drive.google.com/file/d/1Toan8KNTT_PhieuBaiTap7HDT/view',
+            due_date: new Date(Date.now() + 86400000 * 5).toISOString(),
+            description: 'Các em nhấp vào link Google Drive đính kèm để mở phiếu bài tập hoặc làm trên máy tính.'
           },
           {
             id: 'asg-demo-2',
-            title: 'Nhiệm vụ 2: Thu gọn đa thức và Săn đơn thức đồng dạng (Chương 1)',
-            class_name: 'Lớp Toán 8A1',
-            due_date: new Date(Date.now() + 86400000 * 5).toISOString(),
-            description: 'Luyện tập ghép cặp các đơn thức có cùng phần biến để dọn sạch bàn chơi.'
+            title: 'Bài tập ôn luyện Chương 1: Đa thức nhiều biến',
+            class_name: 'Lớp 8/4',
+            external_link: 'https://drive.google.com/file/d/1Toan8KNTT_PhieuDonThucDaThuc/view',
+            due_date: new Date(Date.now() + 86400000 * 4).toISOString(),
+            description: 'Luyện tập ghép cặp đơn thức đồng dạng và thu gọn đa thức nhiều biến.'
+          },
+          {
+            id: 'asg-demo-3',
+            title: 'Kiểm tra trắc nghiệm online Toán 8 - 15 phút (Google Forms)',
+            class_name: 'Lớp 8/8',
+            external_link: 'https://forms.gle/Toan8KNTT_KiemTra15Phut',
+            due_date: new Date(Date.now() + 86400000 * 3).toISOString(),
+            description: 'Mở link Google Forms đính kèm để hoàn thành bài trắc nghiệm 15 phút.'
           }
         ];
       }

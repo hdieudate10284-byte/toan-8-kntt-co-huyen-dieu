@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.classes (
     description TEXT,
     code VARCHAR(12) UNIQUE NOT NULL, -- Mã gia nhập lớp (Join Code)
     teacher_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    academic_year VARCHAR(20) DEFAULT '2025 - 2026',
+    academic_year VARCHAR(20) DEFAULT '2026 - 2027',
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS public.assignments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     description TEXT,
+    external_link TEXT,
     material_id UUID REFERENCES public.materials(id) ON DELETE SET NULL,
     class_id UUID NOT NULL REFERENCES public.classes(id) ON DELETE CASCADE,
     due_date TIMESTAMPTZ,
@@ -96,6 +97,8 @@ CREATE TABLE IF NOT EXISTS public.assignments (
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
+
+ALTER TABLE public.assignments ADD COLUMN IF NOT EXISTS external_link TEXT;
 
 -- 8. BẢNG STUDENT_PROGRESS (TIẾN ĐỘ, ĐIỂM SỐ & THỜI GIAN HOÀN THÀNH)
 CREATE TABLE IF NOT EXISTS public.student_progress (
@@ -211,32 +214,16 @@ CREATE POLICY "Create classes policy" ON public.classes FOR INSERT TO public WIT
 CREATE POLICY "Manage classes policy" ON public.classes FOR ALL TO public USING (true);
 
 -- 15. POLICIES CHO BẢNG CLASS_MEMBERS
-CREATE POLICY "View class members policy"
-ON public.class_members FOR SELECT
-TO authenticated
-USING (
-    student_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.classes WHERE id = class_members.class_id AND teacher_id = auth.uid())
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+DROP POLICY IF EXISTS "View class members policy" ON public.class_members;
+CREATE POLICY "View class members policy" ON public.class_members FOR SELECT TO public USING (true);
 
-CREATE POLICY "Join or add class members policy"
-ON public.class_members FOR INSERT
-TO authenticated
-WITH CHECK (
-    student_id = auth.uid() -- Học sinh tự join bằng mã
-    OR EXISTS (SELECT 1 FROM public.classes WHERE id = class_members.class_id AND teacher_id = auth.uid()) -- Giáo viên thêm
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+DROP POLICY IF EXISTS "Join class members policy" ON public.class_members;
+DROP POLICY IF EXISTS "Join or add class members policy" ON public.class_members;
+CREATE POLICY "Join class members policy" ON public.class_members FOR INSERT TO public WITH CHECK (true);
 
-CREATE POLICY "Remove class members policy"
-ON public.class_members FOR DELETE
-TO authenticated
-USING (
-    student_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.classes WHERE id = class_members.class_id AND teacher_id = auth.uid())
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+DROP POLICY IF EXISTS "Manage class members policy" ON public.class_members;
+DROP POLICY IF EXISTS "Remove class members policy" ON public.class_members;
+CREATE POLICY "Manage class members policy" ON public.class_members FOR ALL TO public USING (true);
 
 -- 16. POLICIES CHO BẢNG MATERIALS
 -- Xem học liệu: Tài liệu công khai hoặc do chính mình tạo hoặc Admin

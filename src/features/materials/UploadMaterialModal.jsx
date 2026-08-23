@@ -200,12 +200,13 @@ export const UploadMaterialModal = ({
           <label className="block text-xs font-semibold text-slate-300 mb-1">
             Định dạng học liệu:
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {[
               { id: 'document', label: 'Tài liệu PDF/Doc', icon: FileText },
+              { id: 'external_link', label: 'Link bài tập (Drive/Forms)', icon: LinkIcon },
               { id: 'video', label: 'Video bài giảng', icon: Video },
-              { id: 'game_iframe', label: 'Game Nhúng (Wordwall)', icon: Gamepad2 },
-              { id: 'game_html5', label: 'Game HTML5 (.zip)', icon: Upload }
+              { id: 'game_iframe', label: 'Game (Wordwall)', icon: Gamepad2 },
+              { id: 'game_html5', label: 'Game HTML5', icon: Upload }
             ].map((t) => {
               const Icon = t.icon;
               const isSelected = type === t.id;
@@ -214,14 +215,14 @@ export const UploadMaterialModal = ({
                   type="button"
                   key={t.id}
                   onClick={() => setType(t.id)}
-                  className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition-all ${
+                  className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition-all ${
                     isSelected
                       ? 'bg-sky-500/20 border-sky-400 text-sky-300'
                       : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span>{t.label}</span>
+                  <Icon className="w-4 h-4" />
+                  <span className="text-center leading-tight">{t.label}</span>
                 </button>
               );
             })}
@@ -229,9 +230,28 @@ export const UploadMaterialModal = ({
         </div>
 
         {/* Input by type */}
-        {type === 'game_iframe' ? (
+        {type === 'external_link' ? (
+          <div className="p-3.5 rounded-2xl bg-sky-950/40 border border-sky-500/40 space-y-2">
+            <label className="block text-xs font-bold text-sky-300 flex items-center gap-1.5">
+              <LinkIcon className="w-4 h-4 text-sky-400" />
+              Đường dẫn link bài tập online (Google Drive, Forms, Azota, Website...) <span className="text-rose-400">*</span>
+            </label>
+            <input
+              type="url"
+              placeholder="Ví dụ: https://drive.google.com/file/d/... hoặc https://azota.vn/..."
+              value={embedUrl}
+              onChange={(e) => setEmbedUrl(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-sky-500/50 text-slate-100 font-mono text-xs focus:outline-none focus:border-sky-400 shadow-inner"
+              required
+            />
+            <p className="text-[11px] text-slate-400">
+              💡 Dán link bài tập Google Form, phiếu bài tập Drive hoặc bài tập Azota để học sinh nhấp vào làm ngay.
+            </p>
+          </div>
+        ) : type === 'game_iframe' ? (
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
+              <LinkIcon className="w-3.5 h-3.5 text-sky-400" />
               Đường dẫn nhúng iFrame (Wordwall / Quizizz / Kahoot / Geogebra) <span className="text-rose-400">*</span>
             </label>
             <input
@@ -244,15 +264,30 @@ export const UploadMaterialModal = ({
             />
           </div>
         ) : (
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
-              Tải file lên (PDF, DOCX, PPTX, MP4, .ZIP HTML5):
-            </label>
-            <input
-              type="file"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-500/20 file:text-sky-300 hover:file:bg-sky-500/30 cursor-pointer"
-            />
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
+                <LinkIcon className="w-3.5 h-3.5 text-sky-400" />
+                Đường dẫn Link online (Drive / Youtube / Web) nếu có:
+              </label>
+              <input
+                type="url"
+                placeholder="Ví dụ: https://drive.google.com/... hoặc https://youtube.com/..."
+                value={embedUrl}
+                onChange={(e) => setEmbedUrl(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 font-mono text-xs focus:outline-none focus:border-sky-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Hoặc tải tệp tin từ máy tính lên (PDF, DOCX, PPTX, MP4, .ZIP):
+              </label>
+              <input
+                type="file"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-500/20 file:text-sky-300 hover:file:bg-sky-500/30 cursor-pointer"
+              />
+            </div>
           </div>
         )}
 

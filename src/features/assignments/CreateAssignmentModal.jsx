@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CalendarPlus, BookOpen, Clock, Users, Sparkles } from 'lucide-react';
+import { CalendarPlus, BookOpen, Clock, Users, Sparkles, Link as LinkIcon } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
@@ -17,6 +17,7 @@ export const CreateAssignmentModal = ({
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [externalLink, setExternalLink] = useState('');
   const [selectedClassId, setSelectedClassId] = useState(preselectedClassId || (classes[0]?.id || ''));
   const [selectedMaterialId, setSelectedMaterialId] = useState(preselectedMaterial?.id || (materials[0]?.id || ''));
   const [dueDate, setDueDate] = useState(() => {
@@ -46,6 +47,7 @@ export const CreateAssignmentModal = ({
       const newAssignmentData = {
         title: title.trim(),
         description: description.trim(),
+        external_link: externalLink.trim() || null,
         class_id: selectedClassId,
         material_id: selectedMaterialId || null,
         due_date: new Date(dueDate).toISOString(),
@@ -71,18 +73,37 @@ export const CreateAssignmentModal = ({
         }
       }
 
+      const targetClass = classes.find((c) => String(c.id) === String(selectedClassId));
+      const className = targetClass?.name || 'Lớp 8/6';
+
       if (!createdAssignment) {
         createdAssignment = {
           ...newAssignmentData,
           id: `asg-${Date.now()}`,
+          class_name: className,
           created_at: new Date().toISOString()
         };
+      } else {
+        createdAssignment = {
+          ...createdAssignment,
+          class_name: className
+        };
+      }
+
+      // Lưu vào localStorage để bài tập hiển thị ngay lập tức trên màn hình Học sinh & Lớp học
+      try {
+        const saved = JSON.parse(localStorage.getItem('toan8_custom_assignments') || '[]');
+        const updated = [createdAssignment, ...saved.filter((a) => String(a.id) !== String(createdAssignment.id))];
+        localStorage.setItem('toan8_custom_assignments', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Lỗi lưu bài tập vào localStorage:', e);
       }
 
       onAssignmentCreated(createdAssignment);
       onClose();
       setTitle('');
       setDescription('');
+      setExternalLink('');
     } catch (err) {
       console.error('Lỗi giao bài tập:', err);
       setError(err.message || 'Không thể giao bài tập.');
@@ -183,6 +204,23 @@ export const CreateAssignmentModal = ({
               max="100"
             />
           </div>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-sky-950/50 border border-sky-500/40 space-y-1.5 shadow-inner">
+          <label className="block text-xs font-bold text-sky-300 flex items-center gap-1.5">
+            <LinkIcon className="w-4 h-4 text-sky-400" />
+            🔗 Đường dẫn link bài tập online (Google Drive, Forms, Azota, PDF, Web...)
+          </label>
+          <input
+            type="url"
+            placeholder="Ví dụ: https://drive.google.com/file/d/... hoặc https://azota.vn/..."
+            value={externalLink}
+            onChange={(e) => setExternalLink(e.target.value)}
+            className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-sky-500/50 text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-sky-400 font-mono shadow-sm"
+          />
+          <p className="text-[11px] text-slate-400 leading-tight">
+            💡 Dán link phiếu bài tập Google Drive, Form trắc nghiệm hoặc bài tập Azota tại đây để học sinh nhấp vào làm ngay.
+          </p>
         </div>
 
         <div>

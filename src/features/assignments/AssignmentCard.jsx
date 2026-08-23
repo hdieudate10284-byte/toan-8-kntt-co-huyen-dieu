@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, CheckCircle2, AlertCircle, ArrowRight, Play, Eye } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, AlertCircle, ArrowRight, Play, Eye, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
@@ -50,6 +50,26 @@ export const AssignmentCard = ({
           {assignment.description || 'Hoàn thành bài tập và trò chơi để đạt điểm rèn luyện.'}
         </p>
 
+        {/* Attached Link Box */}
+        {assignment.external_link && (
+          <div className="mt-3.5 p-3 rounded-xl bg-sky-950/60 border border-sky-800/60 flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-sky-300 min-w-0">
+              <LinkIcon className="w-4 h-4 text-sky-400 flex-shrink-0" />
+              <span className="truncate font-medium">Link bài tập đính kèm:</span>
+            </div>
+            <a
+              href={assignment.external_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 flex items-center gap-1.5 font-semibold transition-all hover:scale-105 flex-shrink-0 shadow-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span>Mở Link</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        )}
+
         {/* Due date info */}
         <div className="flex items-center gap-2 mt-4 text-xs text-slate-400">
           <Calendar className="w-4 h-4 text-sky-400" />
@@ -58,26 +78,60 @@ export const AssignmentCard = ({
       </div>
 
       {/* Footer Actions */}
-      <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
+      <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
         {isTeacher ? (
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={Eye}
-            onClick={() => onViewDetails && onViewDetails(assignment)}
-          >
-            Xem kết quả lớp
-          </Button>
-        ) : (
-          <Link to={`/games?assignmentId=${assignment.id}`}>
+          <div className="flex items-center justify-between w-full gap-2">
             <Button
-              variant={isCompleted ? 'secondary' : 'gold'}
+              variant="secondary"
               size="sm"
-              icon={Play}
+              icon={Eye}
+              onClick={() => onViewDetails && onViewDetails(assignment)}
             >
-              {isCompleted ? 'Làm lại bài' : 'Làm bài tập ngay'}
+              Xem kết quả lớp
             </Button>
-          </Link>
+            {assignment.external_link && (
+              <a
+                href={assignment.external_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-medium"
+              >
+                <span>Mở bài tập</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 w-full justify-between">
+            {assignment.external_link ? (
+              <a
+                href={assignment.external_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full"
+              >
+                <Button
+                  variant={isCompleted ? 'secondary' : 'gold'}
+                  size="sm"
+                  icon={ExternalLink}
+                  className="w-full justify-center"
+                >
+                  {isCompleted ? 'Xem lại bài tập' : 'Mở link làm bài tập ngay'}
+                </Button>
+              </a>
+            ) : (
+              <Link to={`/games?assignmentId=${assignment.id}`} className="w-full">
+                <Button
+                  variant={isCompleted ? 'secondary' : 'gold'}
+                  size="sm"
+                  icon={Play}
+                  className="w-full justify-center"
+                >
+                  {isCompleted ? 'Làm lại bài' : 'Làm bài tập ngay'}
+                </Button>
+              </Link>
+            )}
+          </div>
         )}
       </div>
     </div>

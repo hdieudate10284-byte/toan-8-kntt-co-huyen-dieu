@@ -88,12 +88,17 @@
 
 /* KaTeX Formula enhancements */
 .katex-display {
-  margin: 0.75em 0 !important;
+  margin: 0.5em 0 !important;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.5rem 0;
+  max-width: 100%;
+  padding: 0.25rem 0;
+  -webkit-overflow-scrolling: touch;
+}
+.katex-display > .katex {
+  max-width: 100%;
 }
 .katex {
-  font-size: 1.1em;
+  font-size: 1.05em;
   color: #7dd3fc;
 }

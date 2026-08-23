@@ -47,7 +47,7 @@ export const CreateClassModal = ({
         subject: 'Toán học (KNTT)',
         code: code.toUpperCase().trim(),
         teacher_id: effectiveTeacherId,
-        academic_year: '2025–2026'
+        academic_year: '2026–2027'
       };
 
       let createdClass = null;

@@ -3,6 +3,7 @@ import { FileText, Video, Gamepad2, Download, ExternalLink } from 'lucide-react'
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
+import EmbedGameViewer from '../games/EmbedGameViewer';
 
 export const MaterialViewerModal = ({
   material,
@@ -41,14 +42,10 @@ export const MaterialViewerModal = ({
             )}
           </div>
         ) : material.type === 'game_iframe' || material.type === 'game_html5' ? (
-          <div className="h-[520px] w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-800">
-            <iframe
-              src={material.embed_url || material.file_url}
-              title={material.title}
-              className="w-full h-full border-0"
-              allowFullScreen
-            />
-          </div>
+          <EmbedGameViewer
+            title={material.title}
+            embedUrl={material.embed_url || material.file_url || 'https://wordwall.net'}
+          />
         ) : (
           <div className="h-[520px] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 flex flex-col items-center justify-center p-8 text-center">
             <div className="p-4 rounded-3xl bg-sky-500/15 text-sky-400 mb-4 border border-sky-500/30">
